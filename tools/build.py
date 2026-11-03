@@ -47,8 +47,9 @@ def map_name(rel):
 
 def fix_html(t):
     t = re.sub(r"<base\s+href=\"[^\"]*\"\s*/?>\s*", "", t)
-    t = re.sub(SELF + r"/", "/", t)
-    t = re.sub(SELF + r"(?=[\"'])", "/", t)
+    # only inside attribute values (preceded by a quote), never in visible text
+    t = re.sub(r"([\"'])" + SELF + r"/", r"\1/", t)
+    t = re.sub(r"([\"'])" + SELF + r"(?=[\"'])", r"\1/", t)
     # drop feed / opensearch discovery links
     t = re.sub(r"<link[^>]*(?:opensearch|application/(?:rss|atom)\+xml)[^>]*>\s*", "", t)
     # drop (empty) admin edit buttons
@@ -60,7 +61,7 @@ def fix_html(t):
         return f'href="{path}"' if n == 0 else f'href="{path}/start-{n}"'
     t = re.sub(r"href=\"(/[^\"?#]*)\?(?:limit)?start=(\d+)\"", pag, t)
     # external hosts that support https
-    t = re.sub(r"http://(" + HTTPS_HOSTS + ")", r"https://\1", t)
+    t = re.sub(r"([\"'])http://(" + HTTPS_HOSTS + ")", r"\1https://\2", t)
     # replace Joomla search form with Pagefind mount point
     t = re.sub(r"<form[^>]*>\s*<div class=\"search\">.*?</form>", '<div id="search"></div>', t, flags=re.S)
     t = t.replace('<div id="comp-i">', '<div id="comp-i" data-pagefind-body>', 1)
